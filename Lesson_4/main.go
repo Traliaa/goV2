@@ -14,13 +14,9 @@ import (
 
 func main() {
 	//timer()
-	ctx()
-}
-
-func ctx() {
-	ctx, _ := context.WithTimeout(context.Background(), time.Second*1)
+		ctx := context.Background()
+	ctx,cancel := context.WithCancel(ctx)
 	signalOS := make(chan os.Signal, 1)
-	done := make(chan time.Time, 1)
 	signal.Notify(signalOS, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
@@ -28,11 +24,7 @@ func ctx() {
 
 			select {
 			case <-signalOS:
-				t := func(ctx context.Context) {
-					//time.Sleep(time.Second)
-					done <- time.Now()
-				}
-				t(ctx)
+					cancel()
 
 			default:
 				fmt.Println("working")
@@ -41,12 +33,11 @@ func ctx() {
 		}
 	}()
 	select {
-	case <-done:
-		fmt.Println("done")
 	case <-ctx.Done():
 		fmt.Println("context")
 	}
 }
+
 
 func timer() {
 	signalOS := make(chan os.Signal, 1)
